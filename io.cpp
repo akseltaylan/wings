@@ -2,21 +2,20 @@
 
 IO::IO() { }
 
-std::vector<float> IO::read_data(const char * filename) {
+std::vector<HoudiniVertData> IO::read_data(const char * filename) {
     std::ifstream inFile;
     inFile.open(filename);
     if (!inFile) {
         std::cout << "Unable to open " << filename << std::endl;
         exit(1);
     }
-    std::vector<float> data;
+    std::vector<HoudiniVertData> data;
     float vx;
     float vy;
     float vz;
-    while (inFile >> vx >> vy >> vz) {
-        data.push_back(vx);
-        data.push_back(vy);
-        data.push_back(vz);
+    char c;
+    while (inFile >> vx >> vy >> vz >> c) {
+        data.push_back(HoudiniVertData(vx,vy,vz,c));
     }
     inFile.close();
     return data;

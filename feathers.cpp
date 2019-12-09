@@ -1,4 +1,3 @@
-#include <Eigen>
 #include <math.h>
 #include "spring.h"
 #include "io.h"
@@ -7,6 +6,7 @@
 float mass = 0.4f;
 int n = 0;
 float t = 0.0f;
+int startFrame = 1;
 int frameMax = 240;
 const static float h = 0.005f;
 const static float fps = 24.0f;
@@ -15,12 +15,54 @@ const static int displayCheck = frameCheck / h;
 const Eigen::Vector3f gravity(0.0f,-0.098f,0.0f);
 
 // state variables
-const static int numPoints = 2;
-const static int amtValues = 9;
-const static int stateLen = numPoints * amtValues;
-// state contains position data, velocity data, and force data
+int numPoints = 2;
+int amtValues = 10;
+int stateLen;
+// state contains current position data, velocity data, and force data
 float * state = new float[stateLen];
 std::vector<Spring> springs;
+
+// this vector holds data read in from houdini
+std::vector<float *> frameStates;
+
+void addFrameState(std::vector<HoudiniVertData> & framedata) {
+	float * frameState = new float[stateLen];
+	int i = 0;
+	for (HoudiniVertData hdata : framedata) {
+		// position
+		frameState[i] = hdata.pos.x(); 
+		frameState[i+1] = hdata.pos.y();
+		frameState[i+2] = hdata.pos.z();
+		// initialize velocity
+		frameState[i+3] = 0.0; 
+		frameState[i+4] = 0.0;
+		frameState[i+5] = 0.0;
+		// initialize force
+		frameState[i+6] = 0.0; 
+		frameState[i+7] = 0.0;
+		frameState[i+8] = 0.0;
+		// is root?
+		frameState[i+9] = hdata.pt_type == 'r' ? 1.0f : 0.0f;
+		i += amtValues;
+	}
+	frameStates.push_back(frameState);
+}
+
+void init(IO * io) {
+	const std::string outfolder = "in_data/";
+	std::string filepath;
+	for (int i = startFrame; i <= frameMax; ++i) {
+		filepath = outfolder + "frame" + std::to_string(i) + ".txt"; 
+		std::vector<HoudiniVertData> framedata = io->read_data(filepath.c_str());
+		if (numPoints != framedata.size()) {
+			numPoints = framedata.size();
+			stateLen = numPoints * amtValues;
+		}
+		// add this frame's state to the vector of states
+		addFrameState(framedata);
+	}
+	state = frameStates[0];
+}
 
 void initTestState() {
 	// pt a
@@ -82,10 +124,12 @@ void integrate() {
 
 int main() {
 
-	initTestState();
-	initSprings();
+	//initTestState();
 
 	IO * io = new IO();
+	init(io);
+	initSprings();
+	
 	const std::string outfolder = "out_data/";
 	std::string filepath;
 
@@ -112,6 +156,6 @@ int main() {
 	debugState();
 	std::cout << "total frames: " << frameCount << std::endl;
 	std::cout << "total iterations: " << n << std::endl;
-
+	
 	return 0;
 }
