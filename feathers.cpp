@@ -14,7 +14,7 @@ float amp = 30.0f;
 float restLength = 0.1f;
 int startFrame = 1;
 int frameMax = 240;
-const static float h = 0.005f;
+float h = 0.005f;
 const static float fps = 24.0f;
 const static float frameCheck = 1.0f/fps;
 const static int displayCheck = frameCheck / h;
@@ -54,11 +54,10 @@ void addFrameState(std::vector<HoudiniVertData> & framedata) {
 	frameStates.push_back(frameState);
 }
 
-void init(IO * io) {
-	const std::string outfolder = "in_data/";
+void init(IO * io, std::string infolder) {
 	std::string filepath;
 	for (int i = startFrame; i <= frameMax; ++i) {
-		filepath = outfolder + "frame" + std::to_string(i) + ".txt"; 
+		filepath = infolder + "frame" + std::to_string(i) + ".txt"; 
 		std::vector<HoudiniVertData> framedata = io->read_data(filepath.c_str());
 		if (numPoints != framedata.size()) {
 			numPoints = framedata.size();
@@ -142,23 +141,33 @@ void integrate() {
 
 int main( int argc, char *argv[] ) {
 
+	std::string infolder = "in_data/";
+	std::string outfolder = "out_data/";
+
 	// get parameters from command line
-	if (argc > 1 && argc <= 6) {
+	if (argc > 1 && argc <= 11) {
 		mass = std::stof(argv[1]);
 		ks = std::stof(argv[2]);
 		kd = std::stof(argv[3]);
 		restLength = std::stof(argv[4]);
 		amp = std::stof(argv[5]);
-		// TODO: add h and startFrame/endFrame
-		// maybe starting velocity?
+		if (argc > 5) {
+			h = std::stof(argv[6]);
+			infolder = argv[7];
+			outfolder = argv[8];
+			startFrame = std::stoi(argv[9]);
+			frameMax = std::stoi(argv[10]);
+		}
+	}
+	else {
+		std::cerr << "Not a valid number of arguments." << std::endl;
 	}
 
 	// pre-process
 	IO * io = new IO();
-	init(io);
+	init(io, infolder);
 	initSprings();
 
-	const std::string outfolder = "out_data/";
 	std::string filepath;
 
 	if (SIM) { // TODO: remove (for debugging)

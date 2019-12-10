@@ -44,6 +44,7 @@ void Spring::solve_spring(float * currentState, float m, float amp) {
                          isnan(fa.y()) ? 0.0f : fa.y(),
                          isnan(fa.z()) ? 0.0f : fa.z());
     Eigen::Vector3f fb = -1.0f * fa;
+    
     // apply force to points in the state array
     if (currentState[a+9] != 1.0f) {
         currentState[a+6] += fa.x(); currentState[a+7] += fa.y(); currentState[a+8] += fa.z();
