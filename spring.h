@@ -2,6 +2,10 @@
 #define SPRING_H
 
 #include <string>
+#include <math.h>
+#include <Eigen>
+
+enum SpringType { EDGE, BEND };
 
 class Spring {
 
@@ -10,11 +14,16 @@ class Spring {
 		int b; // starting index in state of pt b
 		float ks;
 		float kd;
-		std::string type;
+		float restLength;
+		SpringType type;
 
 	public:
 		Spring(int, int);
-		Spring(int, int, float, float, std::string);
+		Spring(int, int, float, float, float, SpringType);
+		int get_a_idx();
+		int get_b_idx();
+		void solve_spring(float *, float, float);
+		
 };
 
 #endif
