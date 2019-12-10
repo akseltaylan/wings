@@ -21,19 +21,6 @@ std::vector<HoudiniVertData> IO::read_data(const char * filename) {
     return data;
 }
 
-std::map<std::string, float> IO::read_params(const char * filename) {
-    std::ifstream inFile;
-    inFile.open(filename);
-    std::map<std::string, float> params;
-    std::string paramName;
-    float val;
-    while (inFile >> paramName >> val) {
-        params.insert(std::pair<std::string, float>(paramName,val));
-    }
-    inFile.close();
-    return params;
-}
-
 void IO::write_data(const char * filename, float * state, const int& size, const int& amtValues) {
     std::ofstream outFile;
     outFile.open(filename);
